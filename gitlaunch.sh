@@ -18,7 +18,7 @@ function stop_spinner {
 
 function print_message {
 
-    logging_text=$(cat)
+    local logging_text=$(cat)
 
     tput rc  # Restore the cursor position
     echo -e "\033[K$logging_text"  # Erase to the end of the line and print the new message
@@ -26,6 +26,11 @@ function print_message {
 
 
     echo -en "$GREEN_BOLD* $1$WHITE     "
+}
+
+
+function print_message_test {
+  local logging_text=$(cat)
 }
 
 
@@ -39,22 +44,19 @@ isRepoPublic=false
 GREEN_BOLD='\033[1;32m'
 WHITE='\033[0;37m'
 BLUE='\033[1;36m'
+RED='\033[1;31m'
 
 
 
 if ! [ -f README.md ]; then
-  echo -e "$GREEN_BOLD* README.md file not found. Creating one...$WHITE"
+  echo -e "* README.md file not found. Creating one..."
   touch README.md
 fi
 
 
 if ! [ -d .git ]; then
 
-  echo -e $GREEN_BOLD
-  echo "* Git not intialised in current directory"
-  echo "* Initialising current repository with git..."
-
-  echo -e $WHITE
+  echo -e "* Git not intialised in current directory\n* Initialising current repository with git..."
 
   git init >/dev/null
   git add . >/dev/null
@@ -89,27 +91,42 @@ if ! $isRepoPublic; then
   loading_message="Creating private GitHub repo..." 
 
   spinner_pid=
-  start_spinner "Creating private GitHub repo..."
+  start_spinner "$loading_message"
 
+#  number=$(gh repo create $repoName --private --source=$PWD --remote=upstream --push)
 
-  exec 3>&1
-  number=$(gh repo create $repoName --private --source=$PWD --remote=upstream --push 2>&1 >/dev/null)
-  exec 1>&3
+#  gh repo create $repoName --private --source=$PWD --remote=upstream --push 2>&1 | print_message "Creating private GitHub repo..."
+#  github_exit_code=$?
+#  echo "error code: $github_exit_code"
+
+  github_output=$(gh repo create $repoName --private --source=$PWD --remote=upstream --push 2>&1)
+  github_exit_code=$?
+
+  echo "$github_output" | print_message "$loading_message"
+
 
   stop_spinner
 
-  echo "Hello world" 
-  echo -e "Number is $number"
-
 
 else
-  echo -e "$GREEN_BOLD* Creating public Github repo... $WHITE"
+  echo -e "$GREEN_BOLD* $loading_message $WHITE"
   # gh repo create $repoName --public --source=$PWD --remote=upstream --push
 fi
 
-echo -e "$GREEN_BOLD* Created repo on Github.com$WHITE"
+
+
+if [ $github_exit_code -eq 0 ]; then
+  echo -ne "\n$GREEN_BOLD* GitHub repo created successfully!$WHITE\n\n"
+else
+  echo -ne "$RED* Error creating GitHub repo.$WHITE\n\n"
+
+  rm README.md
+  rm -rf .git
+
+  exit 1
+fi
 
 
 
-
-echo "END"
+rm README.md
+rm -rf .git
