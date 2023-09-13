@@ -53,6 +53,11 @@ if ! [ -f README.md ]; then
   touch README.md
 fi
 
+if ! [ -f .gitignore ]; then
+  echo -e "* .gitignore file not found. Creating one..."
+  touch .gitignore
+fi
+
 
 if ! [ -d .git ]; then
 
