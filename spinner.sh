@@ -21,22 +21,36 @@ function stop_spinner {
 }
 
 function print_message {
+
+    logging_text=$(cat)
+
     tput rc  # Restore the cursor position
-    echo -e "\033[K$1"  # Erase to the end of the line and print the new message
+    echo -e "\033[K$logging_text"  # Erase to the end of the line and print the new message
     tput sc  # Save the cursor position again
 
-    echo -en "$GREEN_BOLD* $2$WHITE     "
+
+    echo -en "$GREEN_BOLD* $1$WHITE     "
 }
 
-spinner_pid=
-start_spinner "I'm thinking "
+function random_text {
+    echo "Words iodjksfkdls dksj ldk"
+    echo "Words iodjksfkdls dksj ldk"
+    sleep 1
+    echo "Words iodjksfkdls dksj ldk"
+    sleep 2
+    echo "Words iodjksfkdls dksj ldk"
 
-sleep 2
+}
 
-print_message "lol" "I'm thinking "
-sleep 2
+# spinner_pid=
+# start_spinner "I'm thinking "
 
-print_message "lol 2" "I'm thinking "
-sleep 2
+# sleep 2
 
-stop_spinner
+# print_message "lol" "I'm thinking "
+# sleep 2
+
+# print_message "lol 2" "I'm thinking "
+# sleep 2
+
+# stop_spinner
