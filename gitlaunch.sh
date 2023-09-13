@@ -1,6 +1,11 @@
 #!/bin/bash
 
 
+GREEN_BOLD='\033[1;32m'
+DEFAULT_COLOUR='\033[0m'
+BLUE='\033[1;36m'
+RED='\033[1;31m'
+YELLOW='\033[1;33m'
 
 dependencies=("curl" "jq" "git" "gh")
 is_dependency_missing=false
@@ -18,13 +23,45 @@ if $is_dependency_missing; then
 fi
 
 
+function populate_gitignore {
+  required_gitignore_template=$1
+
+  # URL you want to send the GET request to
+  url="https://api.github.com/gitignore/templates/${required_gitignore_template}"
+
+  # Send a GET request and store the response in a variable
+  response=$(curl -s "$url")
+
+  # Check if the request was successful (HTTP status code 200)
+  if [ $? -eq 0 ]; then
+      custom_gitignore="# Custom Files to Ignore"$'\n'".idea"$'\n'".DS_Store"$'\n\n'
+      requested_gitignore=$(echo "$response" | jq -r ".source")
+
+      if [ "$requested_gitignore" != "null" ]; then
+        total_gitignore="${custom_gitignore}${requested_gitignore}"
+      else
+#        echo -e "${YELLOW}Warning: Could not find a .gitignore template for $required_gitignore_template$DEFAULT_COLOUR"
+        total_gitignore="${custom_gitignore}"
+      fi
+
+
+#      echo "$total_gitignore" > .gitignore
+      echo "$total_gitignore" > out.txt
+
+
+  else
+      echo "GET request failed."
+  fi
+
+}
+
 
 function start_spinner {
     set +m
     tput sc  # Save the cursor position
-    echo -en "$GREEN_BOLD* $1$WHITE     "
+    echo -en "$GREEN_BOLD* $1$DEFAULT_COLOUR     "
 
-    { while : ; do for X in ⣾ ⣽ ⣻ ⢿ ⡿ ⣟ ⣯ ⣷ ; do echo -en "\b$BLUE$X$WHITE" ; sleep 0.1 ; done ; done & } 2>/dev/null
+    { while : ; do for X in ⣾ ⣽ ⣻ ⢿ ⡿ ⣟ ⣯ ⣷ ; do echo -en "\b$BLUE$X$DEFAULT_COLOUR" ; sleep 0.1 ; done ; done & } 2>/dev/null
 
     spinner_pid=$!
 }
@@ -44,7 +81,7 @@ function print_message {
     tput sc  # Save the cursor position again
 
 
-    echo -en "$GREEN_BOLD* $1$WHITE     "
+    echo -en "$GREEN_BOLD* $1$DEFAULT_COLOUR     "
 }
 
 
@@ -59,12 +96,25 @@ repoName=${1? missing name of repo name}
 shift
 
 isRepoPublic=false
+isCustomGitignoreRequired=false
 
-GREEN_BOLD='\033[1;32m'
-WHITE='\033[0;37m'
-BLUE='\033[1;36m'
-RED='\033[1;31m'
 
+
+while getopts "pi:" opt; do
+  case $opt in
+    p)
+      isRepoPublic=true
+      ;;
+    i)
+      isCustomGitignoreRequired=true
+      required_gitignore_template="$OPTARG"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
 
 
 if ! [ -f README.md ]; then
@@ -75,12 +125,21 @@ fi
 if ! [ -f .gitignore ]; then
   echo -e "* .gitignore file not found. Creating one..."
   touch .gitignore
+
+  if $isCustomGitignoreRequired; then
+    populate_gitignore "$required_gitignore_template"
+  else
+    echo "lol"
+  fi
+
 fi
 
 
-if ! [ -d .git ]; then
 
-  echo -e "* Git not intialised in current directory\n* Initialising current repository with git..."
+
+
+if ! [ -d .git ]; then
+  echo -e "${YELLOW}Warning: Git not intialised in current directory$DEFAULT_COLOUR\n* Initialising current repository with git..."
 
   git init >/dev/null
   git add . >/dev/null
@@ -88,18 +147,6 @@ if ! [ -d .git ]; then
 
 fi
 
-
-while getopts "p" opt; do
-  case $opt in
-    p)
-      isRepoPublic=true
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      exit 1
-      ;;
-  esac
-done
 
 # Shift the processed options and their arguments
 shift $((OPTIND-1))
@@ -109,7 +156,7 @@ echo ""
 
 
 if ! $isRepoPublic; then
-  # echo -e "$GREEN_BOLD* Creating private GitHub repo.. $WHITE"
+  # echo -e "$GREEN_BOLD* Creating private GitHub repo.. $DEFAULT_COLOUR"
   # gh repo create $repoName --private --source=$PWD --remote=upstream --push
 
   loading_message="Creating private GitHub repo..." 
@@ -133,19 +180,20 @@ if ! $isRepoPublic; then
 
 
 else
-  echo -e "$GREEN_BOLD* $loading_message $WHITE"
+  echo -e "$GREEN_BOLD* $loading_message $DEFAULT_COLOUR"
   # gh repo create $repoName --public --source=$PWD --remote=upstream --push
 fi
 
 
 
 if [ $github_exit_code -eq 0 ]; then
-  echo -ne "\n$GREEN_BOLD* GitHub repo created successfully!$WHITE\n\n"
+  echo -ne "\n$GREEN_BOLD* GitHub repo created successfully!$DEFAULT_COLOUR\n\n"
 else
-  echo -ne "$RED* Error creating GitHub repo.$WHITE\n\n"
+  echo -ne "$RED* Error creating GitHub repo.$DEFAULT_COLOUR\n\n"
 
   rm README.md
   rm -rf .git
+  rm .gitignore
 
   exit 1
 fi
@@ -154,3 +202,4 @@ fi
 
 rm README.md
 rm -rf .git
+rm .gitignore

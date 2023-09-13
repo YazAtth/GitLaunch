@@ -1,22 +1,33 @@
 #!/bin/bash
 
-source ./spinner.sh
+required_gitignore_template="Java"
 
+# URL you want to send the GET request to
+url="https://api.github.com/gitignore/templates/${required_gitignore_template}"
 
-spinner_pid=
-start_spinner "I'm thinking "
+# Send a GET request and store the response in a variable
+response=$(curl -s "$url")
 
-# sleep 2
+# Check if the request was successful (HTTP status code 200)
+if [ $? -eq 0 ]; then
+    custom_gitignore="# Custom Files to Ignore"$'\n'".idea"$'\n'".DS_Store"$'\n\n'
+    requested_gitignore=$(echo "$response" | jq -r ".source")
 
-# print_message "lol" "I'm thinking "
-# sleep 2
+#    echo "$requested_gitignore"
 
-random_text | print_message "I'm thinking "
-sleep 2
+    if [ "$requested_gitignore" != "null" ]; then
+      total_gitignore="${custom_gitignore}${requested_gitignore}"
+    else
+      total_gitignore="${custom_gitignore}"
+    fi
 
-random_text | print_message "I'm thinking "
-sleep 5
+#    echo "$total_gitignore"
 
-stop_spinner
+    echo "$total_gitignore" > out.txt
+
+else
+    echo "GET request failed."
+fi
+
 
 
