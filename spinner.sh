@@ -4,19 +4,13 @@ BLUE='\033[1;36m'
 WHITE='\033[0;37m'
 GREEN_BOLD='\033[1;32m'
 
-
-
 function start_spinner {
     set +m
+    tput sc  # Save the cursor position
     echo -en "$GREEN_BOLD* $1$WHITE     "
-    # while : ; do for X in '┤' '┘' '┴' '└' '├' '┌' '┬' '┐' ; do echo -en "\b$X" ; sleep 0.1 ; done ; done
-    # { while : ; do for X in '  •     ' '   •    ' '    •   ' '     •  ' '      • ' '     •  ' '    •   ' '   •    ' '  •     ' ' •      ' ; do echo -en "\b\b\b\b\b\b\b\b$X" ; sleep 0.1 ; done ; done & } 2>/dev/null
-    
-    # { while : ; do for X in '' ; do echo -en "\b\b\b\b\b\b\b\b$X" ; sleep 0.1 ; done ; done & } 2>/dev/null
 
     { while : ; do for X in ⣾ ⣽ ⣻ ⢿ ⡿ ⣟ ⣯ ⣷ ; do echo -en "\b$BLUE$X$WHITE" ; sleep 0.1 ; done ; done & } 2>/dev/null
 
-    
     spinner_pid=$!
 }
 
@@ -26,13 +20,23 @@ function stop_spinner {
     echo -en "\033[2K\r"
 }
 
-# spinner_pid=
-# start_spinner "I'm thinking "
+function print_message {
+    tput rc  # Restore the cursor position
+    echo -e "\033[K$1"  # Erase to the end of the line and print the new message
+    tput sc  # Save the cursor position again
 
-# # echo "lol"
-# # sleep 2
+    echo -en "$GREEN_BOLD* $2$WHITE     "
+}
 
-# # echo "lol"
-# sleep 2
+spinner_pid=
+start_spinner "I'm thinking "
 
-# stop_spinner
+sleep 2
+
+print_message "lol" "I'm thinking "
+sleep 2
+
+print_message "lol 2" "I'm thinking "
+sleep 2
+
+stop_spinner
