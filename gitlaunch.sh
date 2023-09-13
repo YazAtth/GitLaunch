@@ -1,5 +1,24 @@
 #!/bin/bash
 
+
+
+dependencies=("curl" "jq" "git" "gh")
+is_dependency_missing=false
+
+# Check for the presence of each dependency
+for dependency in "${dependencies[@]}"; do
+    if ! command -v "$dependency" &>/dev/null; then
+        echo "Error: required dependency '$dependency' is not installed. Please install it and try again."
+        is_dependency_missing=true
+    fi
+done
+
+if $is_dependency_missing; then
+    exit 1
+fi
+
+
+
 function start_spinner {
     set +m
     tput sc  # Save the cursor position
