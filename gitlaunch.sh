@@ -8,45 +8,6 @@ BLUE='\033[1;36m'
 RED='\033[1;31m'
 YELLOW='\033[1;33m'
 
-dependencies=("curl" "jq" "git" "gh")
-is_dependency_missing=false
-
-# Check for the presence of each dependency
-for dependency in "${dependencies[@]}"; do
-    if ! command -v "$dependency" &>/dev/null; then
-        echo "Error: required dependency '$dependency' is not installed. Please install it and try again."
-        is_dependency_missing=true
-    fi
-done
-
-if $is_dependency_missing; then
-    exit 1
-fi
-
-# Check if the user requested help
-if [[ "$1" = "-h" ]]; then
-
-  echo -ne "\nUsage: gitlaunch [-h] [-p] [-i template]\n"
-  echo "Options:"
-  echo "  -h        Display this help message and exit"
-  echo "  -p        Set repository as public (default is private)"
-  echo "  -i        Specify a custom .gitignore template"
-
-
-  echo -ne "\n\n$GREEN----------------------------------------------------------------------------\n"
-  echo -ne "In order to run the script like a command: add the line\n\n"
-  echo -ne "  ${GREEN_BOLD}alias gitlaunch='$PWD/gitlaunch.sh'$GREEN\n\n"
-  echo "to the '~/.zshrc' file"
-  echo -ne "\nNOTE: You will have to change the path if you move this script to a \ndifferent directory.\n"
-  echo -ne "----------------------------------------------------------------------------$DEFAULT_COLOUR\n\n"
-
-
-
-  exit 0
-fi
-
-
-
 
 
 
@@ -114,28 +75,54 @@ function print_message {
 }
 
 
-function print_message_test {
-  local logging_text=$(cat)
-}
+# Check if required dependencies are installed before running
+dependencies=("curl" "jq" "git" "gh")
+is_dependency_missing=false
+for dependency in "${dependencies[@]}"; do
+    if ! command -v "$dependency" &>/dev/null; then
+        echo "Error: required dependency '$dependency' is not installed. Please install it and try again."
+        is_dependency_missing=true
+    fi
+done
+if $is_dependency_missing; then
+    exit 1
+fi
 
 
-repoName=${1? missing name of repo name}
+# Check if the user requested help
+if [[ "$1" = "-h" ]]; then
 
-# Shift the processed options and their arguments
-shift
+  echo -ne "\nUsage: gitlaunch [-p] [-i template]\n"
+  echo "Options:"
+  echo "  -p        Set repository as public (default is private)"
+  echo "  -i        Specify a custom .gitignore template"
 
-isRepoPublic=false
-isCustomGitignoreRequired=false
+  echo -ne "\n\n$GREEN----------------------------------------------------------------------------\n"
+  echo -ne "In order to run the script like a command: add the line\n\n"
+  echo -ne "  ${GREEN_BOLD}alias gitlaunch='$PWD/gitlaunch.sh'$GREEN\n\n"
+  echo "to the '~/.zshrc' file"
+  echo -ne "\nNOTE: You will have to change the path if you move this script to a \ndifferent directory.\n"
+  echo -ne "----------------------------------------------------------------------------$DEFAULT_COLOUR\n\n"
+
+  exit 0
+fi
 
 
+repo_name=${1? missing name of repo name}
+shift # Shift the processed options and their arguments so we can ignore the filename argument and read the flags
+
+
+# Handle flags
+is_repo_public=false
+is_custom_gitignore_required=false
 
 while getopts "pi:" opt; do
   case $opt in
     p)
-      isRepoPublic=true
+      is_repo_public=true
       ;;
     i)
-      isCustomGitignoreRequired=true
+      is_custom_gitignore_required=true
       required_gitignore_template="$OPTARG"
       ;;
     \?)
@@ -147,57 +134,53 @@ while getopts "pi:" opt; do
 done
 
 
+# Adds README.md if one doesn't already exist
 if ! [ -f README.md ]; then
   echo -e "* README.md file not found. Creating one..."
   touch README.md
 fi
 
+# Adds a gitignore of one doesn't already exist.
 if ! [ -f .gitignore ]; then
   echo -e "* .gitignore file not found. Creating one..."
   touch .gitignore
 
-  if $isCustomGitignoreRequired; then
+  if $is_custom_gitignore_required; then
     populate_gitignore "$required_gitignore_template"
   fi
-
 fi
 
 
 
-
-
+# Initialises git in the local directory if not already initialised
 if ! [ -d .git ]; then
   echo -e "${YELLOW}Warning: Git not intialised in current directory$DEFAULT_COLOUR\n* Initialising current repository with git..."
 
   git init >/dev/null
   git add . >/dev/null
   git commit -m "FEAT: Setup (first commit)" >/dev/null
-
 fi
 
 
 # Shift the processed options and their arguments
 shift $((OPTIND-1))
-
 echo ""
 
 
-
-if ! $isRepoPublic; then
+# Creates the github repo
+if ! $is_repo_public; then
 
   loading_message="Creating private GitHub repo..." 
 
   spinner_pid=
   start_spinner "$loading_message"
 
-  github_output=$(gh repo create $repoName --private --source=$PWD --remote=upstream --push 2>&1)
+  github_output=$(gh repo create $repo_name --private --source=$PWD --remote=upstream --push 2>&1)
   github_exit_code=$?
 
   echo "$github_output" | print_message "$loading_message"
 
-
   stop_spinner
-
 
 else
   echo -e "$GREEN_BOLD* $loading_message $DEFAULT_COLOUR"
