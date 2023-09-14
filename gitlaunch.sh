@@ -1,8 +1,7 @@
 #!/bin/zsh
 
-# WARNING: Change to "false" in production
-is_debug_mode=true
-is_debug_mode_mock=true
+# WARNING: Make sure it is "false" in production
+is_debug_mode=false
 
 GREEN_BOLD='\033[1;32m'
 GREEN='\033[0;32m'
@@ -12,6 +11,15 @@ RED='\033[1;31m'
 YELLOW='\033[1;33m'
 
 function main() {
+
+  # Add "--debug" to run the cleanup function
+  # WARNING: Never run in production
+  if [[ "$1" = "--debug" ]]; then
+    echo -en "RUNNING IN DEBUG MODE\n\n"
+    is_debug_mode=true
+    shift
+  fi
+
 
   check_for_missing_dependencies
 
@@ -126,7 +134,7 @@ function check_for_missing_dependencies {
 
   # Check if required dependencies are installed before running
   dependencies=("curl" "jq" "git" "gh")
-  declare -A dependency_brew_command=("jq" "brew install jq" "git" "brew install git" "gh" "brew install gh")
+  declare -A dependency_brew_command=(["jq"]="brew install jq" ["git"]="brew install git" ["gh"]="brew install gh")
 
   is_dependency_missing=false
   for dependency in "${dependencies[@]}"; do
@@ -184,8 +192,13 @@ function populate_gitignore {
       fi
 
 
-#      echo "$total_gitignore" > .gitignore
-      echo "$total_gitignore" > out.txt
+      if [ "$is_debug_mode" = true ]; then
+        echo "$total_gitignore" > out.txt
+      else
+        echo "$total_gitignore" > .gitignore
+      fi
+
+
 
   else
       echo "GET request failed."
