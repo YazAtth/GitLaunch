@@ -69,15 +69,13 @@ function main() {
     git add . >/dev/null
     git commit -m "FEAT: Setup (first commit)" >/dev/null
   else
-    git_msg="Your branch is up to date with 'upstream/dev'."
+    git_msg="nothing to commit, working tree clean"
+
     git status | grep -wq "$git_msg"
     is_pending_commits=$?
 
-    echo "is_pending_commits: $is_pending_commits"
-
     # If directory is initialised with git but no commits have been made
-    if [ $is_pending_commits -eq 0 ]; then
-      echo "RANNNNNN"
+    if [ $is_pending_commits -eq 1 ]; then
       git add . >/dev/null
       git commit -m "FEAT: Setup (first commit)" >/dev/null
     fi
