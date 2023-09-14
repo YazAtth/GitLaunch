@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 
 GREEN_BOLD='\033[1;32m'
@@ -9,82 +9,19 @@ RED='\033[1;31m'
 YELLOW='\033[1;33m'
 
 
-
-
-function populate_gitignore {
-  required_gitignore_template=$1
-
-  # URL you want to send the GET request to
-  url="https://api.github.com/gitignore/templates/${required_gitignore_template}"
-
-  github_auth_token=$(gh auth token)
-
-  # Send a GET request and store the response in a variable
-  response=$(curl -s -H "Authorization: Bearer $github_auth_token" "$url")
-
-  # Check if the request was successful (HTTP status code 200)
-  if [ $? -eq 0 ]; then
-      custom_gitignore="# Custom Files to Ignore"$'\n'".idea"$'\n'".DS_Store"$'\n\n'
-      requested_gitignore=$(echo "$response" | jq -r ".source")
-
-      if [ "$requested_gitignore" != "null" ]; then
-        total_gitignore="${custom_gitignore}${requested_gitignore}"
-      else
-        echo -e "${YELLOW}Warning: Could not find a .gitignore template for '$required_gitignore_template$DEFAULT_COLOUR'"
-        total_gitignore="${custom_gitignore}"
-      fi
-
-
-      echo "$total_gitignore" > .gitignore
-#      echo "$total_gitignore" > out.txt
-
-
-  else
-      echo "GET request failed."
-  fi
-
-}
-
-
-function start_spinner {
-    set +m
-    tput sc  # Save the cursor position
-    echo -en "$GREEN_BOLD* $1$DEFAULT_COLOUR     "
-
-    { while : ; do for X in ⣾ ⣽ ⣻ ⢿ ⡿ ⣟ ⣯ ⣷ ; do echo -en "\b$BLUE$X$DEFAULT_COLOUR" ; sleep 0.1 ; done ; done & } 2>/dev/null
-
-    spinner_pid=$!
-}
-
-function stop_spinner {
-    { kill -9 $spinner_pid && wait; } 2>/dev/null
-    set -m
-    echo -en "\033[2K\r"
-}
-
-function print_message {
-
-    local logging_text=$(cat)
-
-    tput rc  # Restore the cursor position
-    echo -e "\033[K$logging_text"  # Erase to the end of the line and print the new message
-    tput sc  # Save the cursor position again
-
-
-    echo -en "$GREEN_BOLD* $1$DEFAULT_COLOUR     "
-}
-
-
 # Check if required dependencies are installed before running
 dependencies=("curl" "jq" "git" "gh")
+declare -A dependency_brew_command=("jq" "brew install jq" "git" "brew install git" "gh" "brew install gh")
+
 is_dependency_missing=false
 for dependency in "${dependencies[@]}"; do
     if ! command -v "$dependency" &>/dev/null; then
-        echo "Error: required dependency '$dependency' is not installed. Please install it and try again."
+        echo -ne "\n${RED}Error$DEFAULT_COLOUR: required dependency '$dependency' is not installed.\n"
+        echo -ne "Please install it using the command '$GREEN_BOLD${dependency_brew_command[$dependency]}$DEFAULT_COLOUR' and try again.\n\n"
         is_dependency_missing=true
     fi
 done
-if $is_dependency_missing; then
+if $is_dependency_missing; then # Exit the program if at least one dependency is missing
     exit 1
 fi
 
@@ -205,3 +142,83 @@ fi
 #rm README.md
 #rm -rf .git
 #rm .gitignore
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function populate_gitignore {
+  required_gitignore_template=$1
+
+  # URL you want to send the GET request to
+  url="https://api.github.com/gitignore/templates/${required_gitignore_template}"
+
+  github_auth_token=$(gh auth token)
+
+  # Send a GET request and store the response in a variable
+  response=$(curl -s -H "Authorization: Bearer $github_auth_token" "$url")
+
+  # Check if the request was successful (HTTP status code 200)
+  if [ $? -eq 0 ]; then
+      custom_gitignore="# Custom Files to Ignore"$'\n'".idea"$'\n'".DS_Store"$'\n\n'
+      requested_gitignore=$(echo "$response" | jq -r ".source")
+
+      if [ "$requested_gitignore" != "null" ]; then
+        total_gitignore="${custom_gitignore}${requested_gitignore}"
+      else
+        echo -e "${YELLOW}Warning: Could not find a .gitignore template for '$required_gitignore_template$DEFAULT_COLOUR'"
+        total_gitignore="${custom_gitignore}"
+      fi
+
+
+      echo "$total_gitignore" > .gitignore
+#      echo "$total_gitignore" > out.txt
+
+
+  else
+      echo "GET request failed."
+  fi
+
+}
+
+
+function start_spinner {
+    set +m
+    tput sc  # Save the cursor position
+    echo -en "$GREEN_BOLD* $1$DEFAULT_COLOUR     "
+
+    { while : ; do for X in ⣾ ⣽ ⣻ ⢿ ⡿ ⣟ ⣯ ⣷ ; do echo -en "\b$BLUE$X$DEFAULT_COLOUR" ; sleep 0.1 ; done ; done & } 2>/dev/null
+
+    spinner_pid=$!
+}
+
+function stop_spinner {
+    { kill -9 $spinner_pid && wait; } 2>/dev/null
+    set -m
+    echo -en "\033[2K\r"
+}
+
+function print_message {
+
+    local logging_text=$(cat)
+
+    tput rc  # Restore the cursor position
+    echo -e "\033[K$logging_text"  # Erase to the end of the line and print the new message
+    tput sc  # Save the cursor position again
+
+
+    echo -en "$GREEN_BOLD* $1$DEFAULT_COLOUR     "
+}
