@@ -1,5 +1,8 @@
 #!/bin/zsh
 
+# WARNING: Change to "false" in production
+is_debug_mode=true
+is_debug_mode_mock=true
 
 GREEN_BOLD='\033[1;32m'
 GREEN='\033[0;32m'
@@ -92,22 +95,20 @@ function main() {
 
 
   if [ $github_exit_code -eq 0 ]; then
-    echo -ne "\n$GREEN_BOLD* GitHub repo created successfully!$DEFAULT_COLOUR\n\n"
+    echo -ne "\n$GREEN_BOLD✓ GitHub repo created successfully!$DEFAULT_COLOUR\n\n"
   else
     echo -ne "$RED* Error creating GitHub repo.$DEFAULT_COLOUR\n\n"
 
-    rm README.md
-    rm -rf .git
-    rm .gitignore
+    debug_cleanup
+
 
     exit 1
   fi
 
 
 
-  rm README.md
-  rm -rf .git
-  rm .gitignore
+  debug_cleanup
+
 
 
 }
@@ -194,11 +195,15 @@ function populate_gitignore {
 
 
 function start_spinner {
+    local spacing="          "
+
     set +m
     tput sc  # Save the cursor position
-    echo -en "$GREEN_BOLD* $1$DEFAULT_COLOUR     "
+    echo -en "$GREEN_BOLD* $1$DEFAULT_COLOUR  $spacing"
 
-    { while : ; do for X in ⣾ ⣽ ⣻ ⢿ ⡿ ⣟ ⣯ ⣷ ; do echo -en "\b$BLUE$X$DEFAULT_COLOUR" ; sleep 0.1 ; done ; done & } 2>/dev/null
+    { while : ; do for X in "⣾$spacing" "⣽$spacing" "⣻$spacing" "⢿$spacing" "⡿$spacing" "⣟$spacing" "⣯$spacing" "⣷$spacing"; do echo -en "\b\b\b\b\b\b\b\b\b\b\b$BLUE$X$DEFAULT_COLOUR"; sleep 0.1; done; done & } 2>/dev/null
+
+
 
     spinner_pid=$!
 }
@@ -234,6 +239,19 @@ function create_github_repo {
   echo "$github_output" | print_message "$loading_message"
 
   stop_spinner
+}
+
+function debug_cleanup {
+
+  echo -ne "\n\n\n"
+
+  if [ $is_debug_mode = true ]; then
+    rm README.md
+    rm -rf .git
+    rm .gitignore
+    gh repo delete "$repo_name" --yes
+  fi
+
 }
 
 
