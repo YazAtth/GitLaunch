@@ -74,8 +74,8 @@ function populate_gitignore {
       fi
 
 
-#      echo "$total_gitignore" > .gitignore
-      echo "$total_gitignore" > out.txt
+      echo "$total_gitignore" > .gitignore
+#      echo "$total_gitignore" > out.txt
 
 
   else
