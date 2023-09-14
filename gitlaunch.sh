@@ -28,6 +28,11 @@ function main() {
     print_help
   fi
 
+  ####
+  #TODO: Ping github.com and if it does not work: terminate program.
+  # Will resolve issue of hanging when "gh repo create" is called but a connection to github.com cannot be established
+  ####
+
 
   repo_name=${1? missing name of repo name}
   shift # Shift the processed options and their arguments so we can ignore the filename argument and read the flags
