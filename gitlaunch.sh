@@ -30,7 +30,7 @@ function main() {
   # Check if the user requested help
   if [[ "$1" = "-h" ]]; then
 
-    echo -ne "\nUsage: gitlaunch [-p] [-i template]\n"
+    echo -ne "\nUsage: gitlaunch <repo_name> [-p] [-i template]\n"
     echo "Options:"
     echo "  -p        Set repository as public (default is private)"
     echo "  -i        Specify a custom .gitignore template"
