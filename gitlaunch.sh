@@ -68,7 +68,6 @@ function main() {
     git init >/dev/null
     git add . >/dev/null
     git commit -m "FEAT: Setup (first commit)" >/dev/null
-  else
 
   fi
 
@@ -163,7 +162,7 @@ function populate_gitignore {
   # Check if the request was successful (HTTP status code 200)
   if [ $? -eq 0 ]; then
       custom_gitignore="# Custom Files to Ignore"$'\n'".idea"$'\n'".DS_Store"$'\n\n'
-      requested_gitignore=$(echo "$response" | jq -r ".source")
+      requested_gitignore=$(jq -r ".source" <<< "$response")
 
       if [ "$requested_gitignore" != "null" ]; then
         total_gitignore="${custom_gitignore}${requested_gitignore}"
@@ -173,8 +172,8 @@ function populate_gitignore {
       fi
 
 
-      echo "$total_gitignore" > .gitignore
-#      echo "$total_gitignore" > out.txt
+#      echo "$total_gitignore" > .gitignore
+      echo "$total_gitignore" > out.txt
 
   else
       echo "GET request failed."
