@@ -84,18 +84,18 @@ function main() {
   else
     echo -ne "$RED* Error creating GitHub repo.$DEFAULT_COLOUR\n\n"
 
-    rm README.md
-    rm -rf .git
-    rm .gitignore
+#    rm README.md
+#    rm -rf .git
+#    rm .gitignore
 
     exit 1
   fi
 
 
 
-  rm README.md
-  rm -rf .git
-  rm .gitignore
+#  rm README.md
+#  rm -rf .git
+#  rm .gitignore
 
 
 }
@@ -173,7 +173,6 @@ function populate_gitignore {
 
       echo "$total_gitignore" > .gitignore
 #      echo "$total_gitignore" > out.txt
-
 
   else
       echo "GET request failed."
