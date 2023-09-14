@@ -56,8 +56,10 @@ function populate_gitignore {
   # URL you want to send the GET request to
   url="https://api.github.com/gitignore/templates/${required_gitignore_template}"
 
+  github_auth_token=$(gh auth token)
+
   # Send a GET request and store the response in a variable
-  response=$(curl -s "$url")
+  response=$(curl -s -H "Authorization: Bearer $github_auth_token" "$url")
 
   # Check if the request was successful (HTTP status code 200)
   if [ $? -eq 0 ]; then
@@ -67,7 +69,7 @@ function populate_gitignore {
       if [ "$requested_gitignore" != "null" ]; then
         total_gitignore="${custom_gitignore}${requested_gitignore}"
       else
-#        echo -e "${YELLOW}Warning: Could not find a .gitignore template for $required_gitignore_template$DEFAULT_COLOUR"
+        echo -e "${YELLOW}Warning: Could not find a .gitignore template for '$required_gitignore_template$DEFAULT_COLOUR'"
         total_gitignore="${custom_gitignore}"
       fi
 
@@ -219,15 +221,15 @@ if [ $github_exit_code -eq 0 ]; then
 else
   echo -ne "$RED* Error creating GitHub repo.$DEFAULT_COLOUR\n\n"
 
-  rm README.md
-  rm -rf .git
-  rm .gitignore
+#  rm README.md
+#  rm -rf .git
+#  rm .gitignore
 
   exit 1
 fi
 
 
 
-rm README.md
-rm -rf .git
-rm .gitignore
+#rm README.md
+#rm -rf .git
+#rm .gitignore
