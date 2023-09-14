@@ -22,14 +22,12 @@ function main() {
   shift # Shift the processed options and their arguments so we can ignore the filename argument and read the flags
 
   # Handle flags
-  is_repo_public=false
   repo_visibility="private"
   is_custom_gitignore_required=false
 
   while getopts "pi:" opt; do
     case $opt in
       p)
-        is_repo_public=true
         repo_visibility="public"
         ;;
       i)
@@ -78,19 +76,7 @@ function main() {
   echo ""
 
 
-  # Creates the github repo
-  loading_message="Creating $repo_visibility GitHub repo..."
-
-  spinner_pid=
-  start_spinner "$loading_message"
-
-  github_output=$(gh repo create $repo_name --$repo_visibility --source=$PWD --remote=upstream --push 2>&1)
-  github_exit_code=$?
-
-  echo "$github_output" | print_message "$loading_message"
-
-  stop_spinner
-
+  create_github_repo
 
 
   if [ $github_exit_code -eq 0 ]; then
@@ -223,5 +209,21 @@ function print_message {
 
     echo -en "$GREEN_BOLD* $1$DEFAULT_COLOUR     "
 }
+
+function create_github_repo {
+
+  loading_message="Creating $repo_visibility GitHub repo..."
+
+  spinner_pid=
+  start_spinner "$loading_message"
+
+  github_output=$(gh repo create $repo_name --$repo_visibility --source=$PWD --remote=upstream --push 2>&1)
+  github_exit_code=$?
+
+  echo "$github_output" | print_message "$loading_message"
+
+  stop_spinner
+}
+
 
 main "$@"; exit
