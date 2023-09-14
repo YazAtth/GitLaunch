@@ -158,8 +158,6 @@ if ! [ -f .gitignore ]; then
 
   if $isCustomGitignoreRequired; then
     populate_gitignore "$required_gitignore_template"
-#  else
-#    echo "lol"
   fi
 
 fi
@@ -186,19 +184,11 @@ echo ""
 
 
 if ! $isRepoPublic; then
-  # echo -e "$GREEN_BOLD* Creating private GitHub repo.. $DEFAULT_COLOUR"
-  # gh repo create $repoName --private --source=$PWD --remote=upstream --push
 
   loading_message="Creating private GitHub repo..." 
 
   spinner_pid=
   start_spinner "$loading_message"
-
-#  number=$(gh repo create $repoName --private --source=$PWD --remote=upstream --push)
-
-#  gh repo create $repoName --private --source=$PWD --remote=upstream --push 2>&1 | print_message "Creating private GitHub repo..."
-#  github_exit_code=$?
-#  echo "error code: $github_exit_code"
 
   github_output=$(gh repo create $repoName --private --source=$PWD --remote=upstream --push 2>&1)
   github_exit_code=$?
@@ -211,7 +201,6 @@ if ! $isRepoPublic; then
 
 else
   echo -e "$GREEN_BOLD* $loading_message $DEFAULT_COLOUR"
-  # gh repo create $repoName --public --source=$PWD --remote=upstream --push
 fi
 
 
