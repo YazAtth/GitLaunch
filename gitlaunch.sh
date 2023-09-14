@@ -23,12 +23,14 @@ function main() {
 
   # Handle flags
   is_repo_public=false
+  repo_visibility="private"
   is_custom_gitignore_required=false
 
   while getopts "pi:" opt; do
     case $opt in
       p)
         is_repo_public=true
+        repo_visibility="public"
         ;;
       i)
         is_custom_gitignore_required=true
@@ -77,23 +79,17 @@ function main() {
 
 
   # Creates the github repo
-  if ! $is_repo_public; then
+  loading_message="Creating $repo_visibility GitHub repo..."
 
-    loading_message="Creating private GitHub repo..."
+  spinner_pid=
+  start_spinner "$loading_message"
 
-    spinner_pid=
-    start_spinner "$loading_message"
+  github_output=$(gh repo create $repo_name --$repo_visibility --source=$PWD --remote=upstream --push 2>&1)
+  github_exit_code=$?
 
-    github_output=$(gh repo create $repo_name --private --source=$PWD --remote=upstream --push 2>&1)
-    github_exit_code=$?
+  echo "$github_output" | print_message "$loading_message"
 
-    echo "$github_output" | print_message "$loading_message"
-
-    stop_spinner
-
-  else
-    echo -e "$GREEN_BOLD* $loading_message $DEFAULT_COLOUR"
-  fi
+  stop_spinner
 
 
 
@@ -102,18 +98,18 @@ function main() {
   else
     echo -ne "$RED* Error creating GitHub repo.$DEFAULT_COLOUR\n\n"
 
-#    rm README.md
-#    rm -rf .git
-#    rm .gitignore
+    rm README.md
+    rm -rf .git
+    rm .gitignore
 
     exit 1
   fi
 
 
 
-#  rm README.md
-#  rm -rf .git
-#  rm .gitignore
+  rm README.md
+  rm -rf .git
+  rm .gitignore
 
 
 }
