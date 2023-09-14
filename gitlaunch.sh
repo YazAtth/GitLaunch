@@ -9,46 +9,17 @@ RED='\033[1;31m'
 YELLOW='\033[1;33m'
 
 function main() {
-  # Check if required dependencies are installed before running
-  dependencies=("curl" "jq" "git" "gh")
-  declare -A dependency_brew_command=("jq" "brew install jq" "git" "brew install git" "gh" "brew install gh")
 
-
-  is_dependency_missing=false
-  for dependency in "${dependencies[@]}"; do
-      if ! command -v "$dependency" &>/dev/null; then
-          echo -ne "\n${RED}Error$DEFAULT_COLOUR: required dependency '$dependency' is not installed.\n"
-          echo -ne "Please install it using the command '$GREEN_BOLD${dependency_brew_command[$dependency]}$DEFAULT_COLOUR' and try again.\n\n"
-          is_dependency_missing=true
-      fi
-  done
-  if $is_dependency_missing; then # Exit the program if at least one dependency is missing
-      exit 1
-  fi
-
+  check_for_missing_dependencies
 
   # Check if the user requested help
   if [[ "$1" = "-h" ]]; then
-
-    echo -ne "\nUsage: gitlaunch <repo_name> [-p] [-i template]\n"
-    echo "Options:"
-    echo "  -p        Set repository as public (default is private)"
-    echo "  -i        Specify a custom .gitignore template"
-
-    echo -ne "\n\n$GREEN----------------------------------------------------------------------------\n"
-    echo -ne "In order to run the script like a command: add the line\n\n"
-    echo -ne "  ${GREEN_BOLD}alias gitlaunch='$PWD/gitlaunch.sh'$GREEN\n\n"
-    echo "to the '~/.zshrc' file"
-    echo -ne "\nNOTE: You will have to change the path if you move this script to a \ndifferent directory.\n"
-    echo -ne "----------------------------------------------------------------------------$DEFAULT_COLOUR\n\n"
-
-    exit 0
+    print_help
   fi
 
 
   repo_name=${1? missing name of repo name}
   shift # Shift the processed options and their arguments so we can ignore the filename argument and read the flags
-
 
   # Handle flags
   is_repo_public=false
@@ -156,10 +127,42 @@ function main() {
 
 
 
+function check_for_missing_dependencies {
+
+  # Check if required dependencies are installed before running
+  dependencies=("curl" "jq" "git" "gh")
+  declare -A dependency_brew_command=("jq" "brew install jq" "git" "brew install git" "gh" "brew install gh")
+
+  is_dependency_missing=false
+  for dependency in "${dependencies[@]}"; do
+      if ! command -v "$dependency" &>/dev/null; then
+          echo -ne "\n${RED}Error$DEFAULT_COLOUR: required dependency '$dependency' is not installed.\n"
+          echo -ne "Please install it using the command '$GREEN_BOLD${dependency_brew_command[$dependency]}$DEFAULT_COLOUR' and try again.\n\n"
+          is_dependency_missing=true
+      fi
+  done
+  if $is_dependency_missing; then # Exit the program if at least one dependency is missing
+      exit 1
+  fi
+
+}
 
 
+function print_help {
+  echo -ne "\nUsage: gitlaunch <repo_name> [-p] [-i template]\n"
+  echo "Options:"
+  echo "  -p        Set repository as public (default is private)"
+  echo "  -i        Specify a custom .gitignore template"
 
+  echo -ne "\n\n$GREEN----------------------------------------------------------------------------\n"
+  echo -ne "In order to run the script like a command: add the line\n\n"
+  echo -ne "  ${GREEN_BOLD}alias gitlaunch='$PWD/gitlaunch.sh'$GREEN\n\n"
+  echo "to the '~/.zshrc' file"
+  echo -ne "\nNOTE: You will have to change the path if you move this script to a \ndifferent directory.\n"
+  echo -ne "----------------------------------------------------------------------------$DEFAULT_COLOUR\n\n"
 
+  exit 0
+}
 
 
 function populate_gitignore {
