@@ -68,6 +68,8 @@ function main() {
     git init >/dev/null
     git add . >/dev/null
     git commit -m "FEAT: Setup (first commit)" >/dev/null
+  else
+
   fi
 
 
@@ -84,18 +86,18 @@ function main() {
   else
     echo -ne "$RED* Error creating GitHub repo.$DEFAULT_COLOUR\n\n"
 
-#    rm README.md
-#    rm -rf .git
-#    rm .gitignore
+    rm README.md
+    rm -rf .git
+    rm .gitignore
 
     exit 1
   fi
 
 
 
-#  rm README.md
-#  rm -rf .git
-#  rm .gitignore
+  rm README.md
+  rm -rf .git
+  rm .gitignore
 
 
 }
