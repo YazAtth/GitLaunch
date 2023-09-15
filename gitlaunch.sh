@@ -79,7 +79,7 @@ function main() {
 
   # Initialises git in the local directory if not already initialised
   if ! [ -d .git ]; then
-    echo -e "${YELLOW}Warning: Git not intialised in current directory$DEFAULT_COLOUR\n* Initialising current repository with git..."
+    echo -e "${YELLOW}Warning: Git not initialised in current directory$DEFAULT_COLOUR\n* Initialising current repository with git..."
 
     git init >/dev/null
     git add . >/dev/null
@@ -107,7 +107,7 @@ function main() {
   create_github_repo
 
 
-  if [ $github_exit_code -eq 0 ]; then
+  if [ "$github_exit_code" -eq 0 ]; then
     echo -ne "\n$GREEN_BOLD✓ GitHub repo created successfully!$DEFAULT_COLOUR\n\n"
   else
     echo -ne "$RED* Error creating GitHub repo.$DEFAULT_COLOUR\n\n"
@@ -185,6 +185,7 @@ function populate_gitignore {
   response=$(curl -s -H "Authorization: Bearer $github_auth_token" "$url")
 
   # Check if the request was successful (HTTP status code 200)
+  # shellcheck disable=SC2181
   if [ $? -eq 0 ]; then
       custom_gitignore="# Custom Files to Ignore"$'\n'".idea"$'\n'".DS_Store"$'\n\n'
       requested_gitignore=$(jq -r ".source" <<< "$response")
@@ -234,7 +235,8 @@ function stop_spinner {
 
 function print_message {
 
-    local logging_text=$(cat)
+    local logging_text
+    logging_text=$(cat)
 
     tput rc  # Restore the cursor position
     echo -e "\033[K$logging_text"  # Erase to the end of the line and print the new message
@@ -251,7 +253,7 @@ function create_github_repo {
   spinner_pid=
   start_spinner "$loading_message"
 
-  github_output=$(gh repo create $repo_name --$repo_visibility --source=$PWD --remote=upstream --push 2>&1)
+  github_output=$(gh repo create "$repo_name" --$repo_visibility --source="$PWD" --remote=upstream --push 2>&1)
   github_exit_code=$?
 
   echo "$github_output" | print_message "$loading_message"
