@@ -3,6 +3,8 @@
 # WARNING: Make sure it is "false" in production
 is_debug_mode=false
 
+declare -A created_files=(["README.md"]=false [".gitignore"]=false [".git_folder"]=false)
+
 GREEN_BOLD='\033[1;32m'
 GREEN='\033[0;32m'
 DEFAULT_COLOUR='\033[0m'
@@ -53,7 +55,7 @@ function main() {
       \?)
         echo "Invalid option: -$OPTARG" >&2
         echo "Use 'gitlaunch -h' for help"
-        exit 1
+        terminate_with_error
         ;;
     esac
   done
@@ -63,6 +65,7 @@ function main() {
   if ! [ -f README.md ]; then
     echo -e "* README.md file not found. Creating one..."
     touch README.md
+    created_files["README.md"]=true
   fi
 
   # Adds a gitignore of one doesn't already exist.
@@ -73,6 +76,8 @@ function main() {
     if $is_custom_gitignore_required; then
       populate_gitignore "$required_gitignore_template"
     fi
+
+    created_files[".gitignore"]=true
   fi
 
 
@@ -84,6 +89,8 @@ function main() {
     git init >/dev/null
     git add . >/dev/null
     git commit -m "FEAT: Setup (first commit)" >/dev/null
+
+    created_files[".git_folder"]=true
   else
     git_msg="nothing to commit, working tree clean"
 
@@ -114,8 +121,7 @@ function main() {
 
     debug_cleanup
 
-
-    exit 1
+    terminate_with_error
   fi
 
 
@@ -150,7 +156,7 @@ function check_for_missing_dependencies {
       fi
   done
   if $is_dependency_missing; then # Exit the program if at least one dependency is missing
-      exit 1
+      terminate_with_error
   fi
 
 }
@@ -272,6 +278,25 @@ function debug_cleanup {
     gh repo delete "$repo_name" --yes
   fi
 
+}
+
+
+# Removes any files created if an error occurs
+function terminate_with_error {
+
+  if [ "${created_files["README.md"]}" = true ]; then
+    rm README.md
+  fi
+
+  if [ "${created_files[".gitignore"]}" = true ]; then
+    rm .gitignore
+  fi
+
+  if [ "${created_files[".git_folder"]}" = true ]; then
+    rm -rf .git
+  fi
+
+  exit 1
 }
 
 
