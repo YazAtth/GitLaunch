@@ -31,7 +31,7 @@ function main() {
   fi
 
   ####
-  #TODO: Ping github.com and if it does not work: terminate program.
+  #TODO: Curl to github.com and check header for code 200 before continuing with program.
   # Will resolve issue of hanging when "gh repo create" is called but a connection to github.com cannot be established
   ####
 
